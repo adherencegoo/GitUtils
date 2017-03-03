@@ -113,25 +113,32 @@ else
 						"a" ) #------------------------------------------------------------------------
 							echo "$ "$actionRebaseAbort;
 							$actionRebaseAbort;
+							
+							rebasing="false";
+							looping=$rebasing;
 							;;
 						"c" ) #------------------------------------------------------------------------
 							echo "$ "$actionRebaseCont;
 							$actionRebaseCont;
+							
+							rebasing=`gitIsRebasing.sh`; 
+							looping=$rebasing; #if rebasing, still keep looping
+							[[ $rebasing == "false" ]] && echo $yellowText"[$actionRebase] succeeds!"$resetText;
 							;;
 						* ) #------------------------------------------------------------------------
 							echo "$ "$action1;
 							$action1;
 							;;
 					esac
-					rebasing=`gitIsRebasing.sh`; 
-					looping=$rebasing; #if rebasing, still keep looping
 				else #not rebasing
 					case $action1 in
 						"b" ) #------------------------------------------------------------------------
 							echo "$ "$actionRebase;
 							$actionRebase;
+							
 							rebasing=`gitIsRebasing.sh`; 
 							looping=$rebasing; #if rebasing, still keep looping
+							[[ $rebasing == "false" ]] && echo $yellowText"[$actionRebase] succeeds!"$resetText;
 							;;
 						* ) #------------------------------------------------------------------------
 							echo "$ "$action1;
