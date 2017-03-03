@@ -39,6 +39,7 @@ else
 	cyanText=`tput setaf 6`
 	
 	rebasing=`gitIsRebasing.sh`;
+	selfName=$(basename $0);
 	skippedDivergentBranches=() #array
 	#take action on them one by one
 	for handlingBranch in ${divergentBranches[@]}; do
@@ -51,7 +52,7 @@ else
 		
 			#simulated command line======================================
 			echo "======================================================";
-			echo -e -n ${magentaText}$(basename $0)" "; #short file name
+			echo -e -n ${magentaText}$selfName" "; #short file name
 			echo -e -n ${yellowText}${PWD##*/}" "; #yellow short current directory
 			if [ $rebasing == "true" ]; then
 				echo -e -n ${cyanText}"("$gitOrigHead"|REBASE) ";
@@ -67,9 +68,7 @@ else
 			echo ${resetText}"Base branch: "${redText}$baseBranch ${resetText};
 			echo -n ${resetText}"Take action on divergent branch: ";
 			for idx in ${!divergentBranches[@]}; do
-				if [ $(( $idx%8 )) -eq 0 ]; then
-					echo;
-				fi
+				[ $(( $idx%8 )) -eq 0 ] && echo;
 			
 				tmpBranch=${divergentBranches[$idx]};
 				if [ $handlingBranch == $tmpBranch ]; then
@@ -104,6 +103,10 @@ else
 			echo "------------------------------------------------------";
 			if [[ ${#action1[@]} -eq 1 ]] && [[ $action1 == "s" ]]; then 
 				looping="false";
+			elif [[ "$action1" == *"rebase"* ]] \
+				|| [[ "$action1" == *$selfName* ]] \
+				|| [[ "$action1" == *"divergent"* ]]; then #disable some commands
+				echo $redText"*** action [$action1] is not allowed in "$selfName" ***"$resetText;
 			else #not skipped
 				if [ $rebasing == "true" ]; then
 					case $action1 in
@@ -136,8 +139,8 @@ else
 							rebasing=`gitIsRebasing.sh`; #redundant????
 							;;
 					esac
-				fi
-			fi
+				fi #if rebasing
+			fi #take action
 		done #action loop
 	done #for each divergent branch
 fi 
