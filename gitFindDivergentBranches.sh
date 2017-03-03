@@ -55,17 +55,17 @@ else
 			echo -e -n ${magentaText}$selfName" "; #short file name
 			echo -e -n ${yellowText}${PWD##*/}" "; #yellow short current directory
 			if [ $rebasing == "true" ]; then
-				echo -e -n ${cyanText}"("$gitOrigHead"|REBASE) ";
+				echo -e -n ${cyanText}"(ORIG_HEAD: "$gitOrigHead"|REBASE) ";
 			else
-				echo -e -n ${cyanText}"("$gitHead") ";#name of current branch
+				echo -e -n ${cyanText}"(HEAD: "$gitHead") ";#name of current branch
 			fi
+			echo -n ${redText}"(Base: "$baseBranch")";
 			echo ;
 			
 			#show all divergentBranches======================================
 			if [ $rebasing == "true" ]; then
 				echo "${resetText}*** Executing ${redText}\"git rebase $gitHead(HEAD) $gitOrigHead(ORIG_HEAD)\" ${resetText}***";
 			fi
-			echo ${resetText}"Base branch: "${redText}$baseBranch ${resetText};
 			echo -n ${resetText}"Take action on divergent branch: ";
 			for idx in ${!divergentBranches[@]}; do
 				[ $(( $idx%8 )) -eq 0 ] && echo;
