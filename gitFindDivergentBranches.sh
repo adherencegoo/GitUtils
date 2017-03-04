@@ -102,8 +102,8 @@ else
 			echo -e -n "\t"${resetText}"$ ";
 			
 			#take action======================================
-			read action1;
-			printf "v%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
+			read -e action1;#-e: to avoid the unexpected effect of arrow keys
+			printf "_%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			if [[ ${#action1[@]} -eq 1 ]] && [[ $action1 == "s" ]]; then 
 				looping="false";
 			elif [[ "$action1" == *"rebase"* ]] \
