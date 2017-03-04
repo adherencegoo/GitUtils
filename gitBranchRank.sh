@@ -3,9 +3,9 @@
 	# $rankVal:
 		# not set: get value
 		# 0: unset
-		# 5: set to 5
-		# +5: inc by 5
-		# -5: dec by 5
+		# 1: set to 1
+		# ++/+1: inc by 1
+		# --/-1: dec by 1
 	# $branchName:
 		# not set: use HEAD branch
 	
@@ -13,7 +13,11 @@
 unset rankVal;
 unset branchName;
 for arg in $@; do 
-	if [[ $arg =~ ^[+-]?[0-9]+$ ]]; then 
+	if [[ $arg == "++" ]]; then 
+		rankVal="+1";
+	elif [[ $arg == "--" ]]; then 
+		rankVal="-1";
+	elif [[ $arg =~ ^[+-]?[0-9]+$ ]]; then 
 		rankVal=$arg;
 	else
 		branchName=$arg;
