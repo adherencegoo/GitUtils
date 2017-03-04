@@ -35,22 +35,18 @@ while read entry; do #it must be "entry"
 	printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 	
 	#start to echo this branch==============================================
+	#one line vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	echo -e -n $headerColor"$isHead ";
 	echo -e -n $branchNameColor"$branchName "$invertDisable;
 	rank=$((`git config branch.$branchName.rank`));
 	if [[ $rank =~ ^[0-9]+$ ]] && [[ $rank -gt 0 ]]; then
 		# former regex: positive integer or zero
-			# =~ is the "regular expression match" operator
-			# ^ matches with beginning of string
-			# [0-9] matches a digit
-			# + one or more of the previous (i.e. digit)
-			# $ end of string
-		echo -n -e $redText"\t($rank) ";
-		printf '\xE2\x98\x85 %.0s' `eval echo {1..$rank}`
+		printf "$redText\t%3d) " $rank;
 		# \xE2\x98\x85 is UTF-8 form of unicode ★
+		printf '\xE2\x98\x85 %.0s' `eval echo {1..$rank}`
 	fi
 	echo ;
-	
+	#one line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
 	echo -e $headerColor"\tCommit: $sha "$cyanText"$commitTitle";	
 	
