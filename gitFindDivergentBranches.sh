@@ -1,4 +1,7 @@
 #!/bin/bash
+# Usage: if $baseBranch is not set, manually enter it
+
+#handle input
 baseBranch=$1
 if [ -z $baseBranch ]
 then #true if $baseBranch string is null
@@ -51,7 +54,7 @@ else
 			gitHead=`git name-rev --name-only HEAD`;
 		
 			#simulated command line======================================
-			echo "======================================================";
+			printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			echo -e -n ${magentaText}$selfName" "; #short file name
 			echo -e -n ${yellowText}${PWD##*/}" "; #yellow short current directory
 			if [ $rebasing == "true" ]; then
@@ -100,7 +103,7 @@ else
 			
 			#take action======================================
 			read action1;
-			echo "------------------------------------------------------";
+			printf "v%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			if [[ ${#action1[@]} -eq 1 ]] && [[ $action1 == "s" ]]; then 
 				looping="false";
 			elif [[ "$action1" == *"rebase"* ]] \
