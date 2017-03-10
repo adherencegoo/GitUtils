@@ -18,8 +18,8 @@ invertDisable="\e[27m"
 
 #========================================================
 #TODO: tmp solution for commit containing apostrophe
-# formatString="isHead=%(HEAD) branchName=%(refname:short) sha=%(objectname:short) commitTitle=\"%(contents:subject)\" upstream=%(upstream) push=%(push)"
-formatString="isHead=${QUOTE}%(HEAD)${QUOTE} branchName=${QUOTE}%(refname:short)${QUOTE} sha=${QUOTE}%(objectname:short)${QUOTE} commitTitle=${QUOTE}%(contents:subject)${QUOTE} upstream=${QUOTE}%(upstream)${QUOTE} push=${QUOTE}%(push)${QUOTE}"
+formatString="isHead=%(HEAD) branchName=%(refname:short) sha=%(objectname:short) commitTitle=%(contents:subject) upstream=%(upstream) push=%(push)"
+# formatString="isHead=${QUOTE}%(HEAD)${QUOTE} branchName=${QUOTE}%(refname:short)${QUOTE} sha=${QUOTE}%(objectname:short)${QUOTE} commitTitle=${QUOTE}%(contents:subject)${QUOTE} upstream=${QUOTE}%(upstream)${QUOTE} push=${QUOTE}%(push)${QUOTE}"
 
 #========================================================
 # branchConfigs=`git config --get-regex ^branch.*.*$`;
@@ -40,9 +40,8 @@ while read entry; do #it must be "entry"
 	echo -n $resetText;
 	printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 	
-	#escape characters: to remove ' in values
-	entry=${entry//"'"} #' --> nothing
-	entry=${entry//${QUOTE}/"'"} #${QUOTE} --> '
+	#escape characters:
+	entry=${entry//"'''"/'"'} #''' --> "
 	
 	set -f;#disable globbing
 	eval "$entry"
