@@ -41,7 +41,10 @@ while read entry; do #it must be "entry"
 	printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 	
 	#escape characters:
-	entry=${entry//"'''"/'"'} #''' --> "
+	entry=${entry//'"'/'\"'} #" --> \"
+	entry=${entry//"'''"/${QUOTE}} #''' --> ${QUOTE}
+	entry=${entry//"'"/'"'} #' --> "
+	entry=${entry//${QUOTE}/"'"} #${QUOTE} --> '
 	
 	set -f;#disable globbing
 	eval "$entry"
