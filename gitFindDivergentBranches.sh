@@ -43,9 +43,16 @@ else
 	
 	rebasing=`gitIsRebasing.sh`;
 	selfName=$(basename $0);
+	
+	dimEnable="\e[2m";
+	dimDisable="\e[22m";
+	
+	autoRebase="false";
 	skippedDivergentBranches=() #array
 	#take action on them one by one
 	for handlingBranch in ${divergentBranches[@]}; do
+	
+		[[ $handlingBranch =~ ^.*[-][xX]$ ]] && continue; #ignore branch with trailing -x or -X
 	
 		looping="true";
 		while [ $looping == "true" ]; do
@@ -74,16 +81,22 @@ else
 				[ $(( $idx%8 )) -eq 0 ] && echo;
 			
 				tmpBranch=${divergentBranches[$idx]};
+				[[ $tmpBranch =~ ^.*[-][xX]$ ]] && echo -e -n $dimEnable;
 				if [ $handlingBranch == $tmpBranch ]; then
 					echo -n ${greenText}"  * "$tmpBranch;
 				else
 					echo -n ${yellowText}"    "$tmpBranch;
 				fi
+				echo -e -n $dimDisable;
 			done
 			echo ${resetText};
 			
 			#action list======================================
+			unset actionRebaseAbort;
+			unset actionRebaseCont;
+			unset actionRebase;
 			if [ $rebasing == "true" ]; then
+				autoRebase="false";
 				actionRebaseAbort="git rebase --abort";
 				actionRebaseCont="git rebase --continue";
 				
@@ -94,6 +107,7 @@ else
 				# actionSudoCherry="actionSudoCherry TODO"
 				# actionMarkIgnored="actionMarkIgnored TODO"
 				
+				echo -e ${cyanText}"\t- a: auto rebase for all non-ignored branches"${resetText};
 				echo -e ${cyanText}"\t- b: rebase: "${resetText}$actionRebase;
 				# echo -e ${cyanText}"\t- c: sudo cherry-pick: "${resetText}$actionSudoCherry;
 				# echo -e ${cyanText}"\t- g: make as ignored: "${resetText}$actionMarkIgnored;
@@ -102,7 +116,12 @@ else
 			echo -e -n "\t"${resetText}"$ ";
 			
 			#take action======================================
-			read -e action1;#-e: to avoid the unexpected effect of arrow keys
+			if [[ $autoRebase == "true" ]]; then
+				action1="b";
+				echo $action1;
+			else
+				read -e action1;#-e: to avoid the unexpected effect of arrow keys
+			fi
 			printf "_%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			if [[ ${#action1[@]} -eq 1 ]] && [[ $action1 == "s" ]]; then 
 				looping="false";
@@ -135,6 +154,9 @@ else
 					esac
 				else #not rebasing
 					case $action1 in
+						"a" )
+							autoRebase="true";
+							;;
 						"b" ) #------------------------------------------------------------------------
 							echo "$ "$actionRebase;
 							$actionRebase;
