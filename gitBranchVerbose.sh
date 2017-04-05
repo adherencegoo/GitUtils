@@ -55,15 +55,15 @@ while read entry; do #it must be "entry"
 		branchNameColor=$greenText$invertEnable;
 	else
 		branchNameColor=$magentaText;
-		[[ "$branchName" == TT* ]] && isHead="T";
-		[[ "$branchName" == dev* ]] && isHead="D";
 	fi
 	headerColor=$resetText;
+	headerAbbr=${branchName:0:1};#extrieve the first character
+	headerAbbr=${headerAbbr^^};#to upper case
 
 	
 	#start to echo this branch==============================================
 	#one line vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-	echo -e -n $headerColor"$isHead ";
+	echo -e -n $headerColor"$headerAbbr ";
 	echo -e -n $branchNameColor"$branchName "$invertDisable;
 	rank=$((`git config branch.$branchName.rank`));
 	if [[ $rank =~ ^[0-9]+$ ]] && [[ $rank -gt 0 ]]; then
@@ -83,11 +83,3 @@ while read entry; do #it must be "entry"
 	description=`git config branch.$branchName.description`;
 	[[ ! -z "${description// }" ]] && echo -e $headerColor"\tDescription: "$yellowText$description;
 done
-
-unset isHead;
-unset branchName;
-unset sha;
-unset commitTitle;
-unset description;
-unset merge;
-unset headerColor;
