@@ -75,11 +75,16 @@ while read entry; do #it must be "entry"
 	echo ;
 	#one line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
+	#tmp solution to break lines with specified token " - "; bug: successive tokens will produce unwanted result
+	commitTitle=${commitTitle//' - '/"\n\t                 - "}
 	echo -e $headerColor"\tCommit: $sha "$cyanText"$commitTitle";	
 	
 	[[ ! -z "${upstream// }" ]] && echo -e $headerColor"\tupstream: "$redText"$upstream";
 	[[ ! -z "${push// }" ]] && echo -e $headerColor"\tpush: "$redText"$push";
 		
 	description=`git config branch.$branchName.description`;
-	[[ ! -z "${description// }" ]] && echo -e $headerColor"\tDescription: "$yellowText$description;
+	if [[ ! -z "${description// }" ]]; then
+		description=${description//' - '/"\n\t\t - "} #why can't I add more spaces???
+		echo -e $headerColor"\tDescription: "$yellowText$description;
+	fi
 done
