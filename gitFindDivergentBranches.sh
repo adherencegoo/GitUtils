@@ -41,13 +41,13 @@ else
 	magentaText=`tput setaf 5`
 	cyanText=`tput setaf 6`
 	
-	rebasing=`gitIsRebasing.sh`;
+	stateHasConflicts=`gitIsRebasing.sh`;
 	selfName=$(basename $0);
 	
 	dimEnable="\e[2m";
 	dimDisable="\e[22m";
 	
-	autoRebase="false";
+	stateAutoRebaseOn="false";
 	skippedDivergentBranches=() #array
 	#take action on them one by one
 	for handlingBranch in ${divergentBranches[@]}; do
@@ -64,7 +64,7 @@ else
 			printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			echo -e -n ${magentaText}$selfName" "; #short file name
 			echo -e -n ${yellowText}${PWD##*/}" "; #yellow short current directory
-			if [ $rebasing == "true" ]; then
+			if [ $stateHasConflicts == "true" ]; then
 				echo -e -n ${cyanText}"(ORIG_HEAD: "$gitOrigHead"|REBASE) ";
 			else
 				echo -e -n ${cyanText}"(HEAD: "$gitHead") ";#name of current branch
@@ -73,7 +73,7 @@ else
 			echo ;
 			
 			#show all divergentBranches======================================
-			if [ $rebasing == "true" ]; then
+			if [ $stateHasConflicts == "true" ]; then
 				echo "${resetText}*** Executing ${redText}\"git rebase $gitHead(HEAD) $gitOrigHead(ORIG_HEAD)\" ${resetText}***";
 			fi
 			echo -n ${resetText}"Take action on divergent branch: ";
@@ -91,99 +91,99 @@ else
 			done
 			echo ${resetText};
 			
-			#action list======================================
-			unset actionRebaseAbort;
-			unset actionRebaseCont;
-			unset actionRebase;
-			if [ $rebasing == "true" ]; then
-				autoRebase="false";
-				actionRebaseAbort="git rebase --abort";
-				actionRebaseCont="git rebase --continue";
-				
-				echo -e ${cyanText}"\t- a: "${resetText}$actionRebaseAbort;
-				echo -e ${cyanText}"\t- c: "${resetText}$actionRebaseCont;
+			#enable/disable cmd==========================
+			#TODO
+			enableRebaseAbort=$stateHasConflicts;
+			enableRebaseConti=$stateHasConflicts;
+			
+			if [ $stateHasConflicts == "true" ]; then
+				enableRebase="false";
+				enableAutoRebase="false";
+				stateAutoRebaseOn="false";
 			else
-				actionRebase="git rebase $baseBranch $handlingBranch";
-				# actionSudoCherry="actionSudoCherry TODO"
-				# actionMarkIgnored="actionMarkIgnored TODO"
+				enableRebase="true";
 				
-				echo -e ${cyanText}"\t- a: auto rebase for all non-ignored branches"${resetText};
-				echo -e ${cyanText}"\t- b: rebase: "${resetText}$actionRebase;
-				# echo -e ${cyanText}"\t- c: sudo cherry-pick: "${resetText}$actionSudoCherry;
-				# echo -e ${cyanText}"\t- g: make as ignored: "${resetText}$actionMarkIgnored;
+				if [[ $stateAutoRebaseOn == "true" ]]; then
+					enableAutoRebase="false";
+				else
+					enableAutoRebase="true";
+				fi
 			fi
-			echo -e ${cyanText}"\t- s: skip this branch"${resetText};
+			enableSkip="true";
+						
+			#define cmd body===============================
+			cmdRebaseAbort="git rebase --abort";
+			cmdRebaseConti="git rebase --continue";
+			cmdRebase="git rebase $baseBranch $handlingBranch";
+						
+			#show enabled cmds=================================
+			[[ $enableRebaseAbort == "true" ]] && echo -e ${cyanText}"\t- a: "${resetText}$cmdRebaseAbort;
+			[[ $enableRebaseConti == "true" ]] && echo -e ${cyanText}"\t- c: "${resetText}$cmdRebaseConti;
+			[[ $enableRebase == "true" ]] && echo -e ${cyanText}"\t- b: "${resetText}$cmdRebase;
+			[[ $enableAutoRebase == "true" ]] && echo -e ${cyanText}"\t- all: auto rebase for all non-ignored branches"${resetText};
+			[[ $enableSkip == "true" ]] && echo -e ${cyanText}"\t- s: (skip this branch) "${resetText};
 			echo -e -n "\t"${resetText}"$ ";
 			
-			#take action======================================
-			if [[ $autoRebase == "true" ]]; then
-				action1="b";
-				echo $action1;
+			#read cmd==============================================
+			if [[ $stateAutoRebaseOn == "true" ]]; then
+				currentCmd="b";
+				echo $currentCmd;
 			else
-				read -e action1;#-e: to avoid the unexpected effect of arrow keys
+				read -e currentCmd;#-e: to avoid the unexpected effect of arrow keys
 			fi
 			printf "_%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
-			if [[ ${#action1[@]} -eq 1 ]] && [[ $action1 == "s" ]]; then 
-				looping="false";
-			elif [[ "$action1" == *"rebase"* ]] \
-				|| [[ "$action1" == *$selfName* ]] \
-				|| [[ "$action1" == *"divergent"* ]]; then #disable some commands
-				echo $redText"*** action [$action1] is not allowed in "$selfName" ***"$resetText;
-			else #not skipped
-				if [ $rebasing == "true" ]; then
-					case $action1 in
-						"a" ) #------------------------------------------------------------------------
-							echo "$ "$actionRebaseAbort;
-							$actionRebaseAbort;
-							
-							rebasing="false";
-							looping=$rebasing;
-							;;
-						"c" ) #------------------------------------------------------------------------
-							echo "$ "$actionRebaseCont;
-							$actionRebaseCont;
-							
-							rebasing=`gitIsRebasing.sh`; 
-							looping=$rebasing; #if rebasing, still keep looping
-							[[ $rebasing == "false" ]] && echo $yellowText"[$actionRebase] succeeds!"$resetText;
-							;;
-						* ) #------------------------------------------------------------------------
-							echo "$ "$action1;
-							$action1;
-							;;
-					esac
-				else #not rebasing
-					case $action1 in
-						"a" )
-							autoRebase="true";
-							;;
-						"b" ) #------------------------------------------------------------------------
-							echo "$ "$actionRebase;
-							$actionRebase;
-							
-							rebasing=`gitIsRebasing.sh`; 
-							looping=$rebasing; #if rebasing, still keep looping
-							[[ $rebasing == "false" ]] && echo $yellowText"[$actionRebase] succeeds!"$resetText;
-							;;
-						* ) #------------------------------------------------------------------------
-							echo "$ "$action1;
-							$action1;
-							rebasing=`gitIsRebasing.sh`; #redundant????
-							;;
-					esac
-				fi #if rebasing
-			fi #take action
+			
+			#execute cmd==============================================
+			case $currentCmd in
+				"a" ) #------------------------------------------------------------------------
+					if [[ $enableRebaseAbort == "true" ]]; then
+						echo "$ "$cmdRebaseAbort;
+						$cmdRebaseAbort;
+						
+						stateHasConflicts="false";
+						looping=$stateHasConflicts;
+					fi
+					;;
+				"c" ) #------------------------------------------------------------------------
+					if [[ $enableRebaseConti == "true" ]]; then
+						echo "$ "$cmdRebaseConti;
+						$cmdRebaseConti;
+						
+						stateHasConflicts=`gitIsRebasing.sh`; 
+						looping=$stateHasConflicts; #if stateHasConflicts, still keep looping
+						[[ $stateHasConflicts == "false" ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
+					fi
+					;;
+				"b" ) #------------------------------------------------------------------------
+					if [[ $enableRebase == "true" ]]; then
+						echo "$ "$cmdRebase;
+						$cmdRebase;
+						
+						stateHasConflicts=`gitIsRebasing.sh`; 
+						looping=$stateHasConflicts; #if stateHasConflicts, still keep looping
+						[[ $stateHasConflicts == "false" ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
+					fi
+					;;
+				"all" ) #------------------------------------------------------------------------
+					[[ $enableAutoRebase == "true" ]] && stateAutoRebaseOn="true";
+					;;
+				"s" ) #------------------------------------------------------------------------
+					[[ $enableSkip == "true" ]] && looping="false";
+					;;
+				* ) #------------------------------------------------------------------------
+					#disable some commands
+					if [[ "$currentCmd" == *"rebase"* ]] \
+						|| [[ "$currentCmd" == *$selfName* ]] \
+						|| [[ "$currentCmd" == *"rename"* ]] \
+						|| [[ "$currentCmd" == *"branch -m"* ]] \
+						|| [[ "$currentCmd" == *"divergent"* ]]; then 
+						echo $redText"*** cmd [$currentCmd] is not allowed in "$selfName" ***"$resetText;
+					else
+						echo "$ "$currentCmd;
+						$currentCmd;
+					fi
+					;;
+			esac
 		done #action loop
 	done #for each divergent branch
 fi 
-
-
-unset baseBranch;
-unset looping;
-unset rebasing;
-unset action1;
-unset actionMarkIgnored;
-unset actionRebase;
-unset actionRebaseAbort;
-unset actionRebaseCont;
-unset actionSudoCherry;
