@@ -8,10 +8,10 @@ exec 1>/dev/tty #redirect stdout to console
 
 #handle inputs==============================================
 unset inputPattern;
-isNullable="false";
+isNullable=0;
 for arg in $@; do 
 	if [[ $arg == "--nullable" ]]; then
-		isNullable="true";
+		isNullable=1;
 	elif [[ $arg =~ ^[^-]*$ ]] && [[ ${arg// } ]]; then #not start with - && not empty
 		inputPattern=$arg;
 	fi
@@ -43,11 +43,11 @@ echo;
 
 
 if [[ ${#branches[@]} -eq 0 ]]; then
-	if [[ $isNullable == "false" ]]; then
+	if [[ $isNullable -eq 0 ]]; then
 		echo "tmp: use head"; #TODO: not correct if more than one branch pointing to current commit
 		echo `git name-rev --name-only HEAD` >&$fdReturn;
 	else
-		echo "test... isNullable=\"true\""
+		echo "test... isNullable=\"1\""
 	fi
 elif [ ${#branches[@]} -eq 1 ]; then
 	echo "tmp: directly hit";

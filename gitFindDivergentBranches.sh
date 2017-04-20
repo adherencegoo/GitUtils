@@ -47,15 +47,15 @@ else
 	dimEnable="\e[2m";
 	dimDisable="\e[22m";
 	
-	stateAutoRebaseOn="false";
+	stateAutoRebaseOn=0;
 	skippedDivergentBranches=() #array
 	#take action on them one by one
 	for handlingBranch in ${divergentBranches[@]}; do
 	
 		[[ $handlingBranch =~ ^.*[-][xX]$ ]] && continue; #ignore branch with trailing -x or -X
 	
-		looping="true";
-		while [ $looping == "true" ]; do
+		looping=1;
+		while [ $looping -eq 1 ]; do
 			
 			gitOrigHead=`git name-rev --name-only ORIG_HEAD`;
 			gitHead=`git name-rev --name-only HEAD`;
@@ -64,7 +64,7 @@ else
 			printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 			echo -e -n ${magentaText}$selfName" "; #short file name
 			echo -e -n ${yellowText}${PWD##*/}" "; #yellow short current directory
-			if [ $stateHasConflicts == "true" ]; then
+			if [ $stateHasConflicts -eq 1 ]; then
 				echo -e -n ${cyanText}"(ORIG_HEAD: "$gitOrigHead"|REBASE) ";
 			else
 				echo -e -n ${cyanText}"(HEAD: "$gitHead") ";#name of current branch
@@ -73,7 +73,7 @@ else
 			echo ;
 			
 			#show all divergentBranches======================================
-			if [ $stateHasConflicts == "true" ]; then
+			if [ $stateHasConflicts -eq 1 ]; then
 				echo "${resetText}*** Executing ${redText}\"git rebase $gitHead(HEAD) $gitOrigHead(ORIG_HEAD)\" ${resetText}***";
 			fi
 			echo -n ${resetText}"Take action on divergent branch: ";
@@ -95,21 +95,19 @@ else
 			#TODO
 			enableRebaseAbort=$stateHasConflicts;
 			enableRebaseConti=$stateHasConflicts;
+			enableRebase=`invert.sh $stateHasConflicts`;
 			
-			if [ $stateHasConflicts == "true" ]; then
-				enableRebase="false";
-				enableAutoRebase="false";
-				stateAutoRebaseOn="false";
+			if [ $stateHasConflicts -eq 1 ]; then
+				enableAutoRebase=0;
+				stateAutoRebaseOn=0;
 			else
-				enableRebase="true";
-				
-				if [[ $stateAutoRebaseOn == "true" ]]; then
-					enableAutoRebase="false";
+				if [[ $stateAutoRebaseOn -eq 1 ]]; then
+					enableAutoRebase=0;
 				else
-					enableAutoRebase="true";
+					enableAutoRebase=1;
 				fi
 			fi
-			enableSkip="true";
+			enableSkip=1;
 						
 			#define cmd body===============================
 			cmdRebaseAbort="git rebase --abort";
@@ -117,15 +115,15 @@ else
 			cmdRebase="git rebase $baseBranch $handlingBranch";
 						
 			#show enabled cmds=================================
-			[[ $enableRebaseAbort == "true" ]] && echo -e ${cyanText}"\t- a: "${resetText}$cmdRebaseAbort;
-			[[ $enableRebaseConti == "true" ]] && echo -e ${cyanText}"\t- c: "${resetText}$cmdRebaseConti;
-			[[ $enableRebase == "true" ]] && echo -e ${cyanText}"\t- b: "${resetText}$cmdRebase;
-			[[ $enableAutoRebase == "true" ]] && echo -e ${cyanText}"\t- all: auto rebase for all non-ignored branches"${resetText};
-			[[ $enableSkip == "true" ]] && echo -e ${cyanText}"\t- s: (skip this branch) "${resetText};
+			[[ $enableRebaseAbort -eq 1 ]] && echo -e ${cyanText}"\t- a: "${resetText}$cmdRebaseAbort;
+			[[ $enableRebaseConti -eq 1 ]] && echo -e ${cyanText}"\t- c: "${resetText}$cmdRebaseConti;
+			[[ $enableRebase -eq 1 ]] && echo -e ${cyanText}"\t- b: "${resetText}$cmdRebase;
+			[[ $enableAutoRebase -eq 1 ]] && echo -e ${cyanText}"\t- all: auto rebase for all non-ignored branches"${resetText};
+			[[ $enableSkip -eq 1 ]] && echo -e ${cyanText}"\t- s: (skip this branch) "${resetText};
 			echo -e -n "\t"${resetText}"$ ";
 			
 			#read cmd==============================================
-			if [[ $stateAutoRebaseOn == "true" ]]; then
+			if [[ $stateAutoRebaseOn -eq 1 ]]; then
 				currentCmd="b";
 				echo $currentCmd;
 			else
@@ -136,39 +134,39 @@ else
 			#execute cmd==============================================
 			case $currentCmd in
 				"a" ) #------------------------------------------------------------------------
-					if [[ $enableRebaseAbort == "true" ]]; then
+					if [[ $enableRebaseAbort -eq 1 ]]; then
 						echo "$ "$cmdRebaseAbort;
 						$cmdRebaseAbort;
 						
-						stateHasConflicts="false";
+						stateHasConflicts=0;
 						looping=$stateHasConflicts;
 					fi
 					;;
 				"c" ) #------------------------------------------------------------------------
-					if [[ $enableRebaseConti == "true" ]]; then
+					if [[ $enableRebaseConti -eq 1 ]]; then
 						echo "$ "$cmdRebaseConti;
 						$cmdRebaseConti;
 						
 						stateHasConflicts=`gitIsRebasing.sh`; 
 						looping=$stateHasConflicts; #if stateHasConflicts, still keep looping
-						[[ $stateHasConflicts == "false" ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
+						[[ $stateHasConflicts -eq 0 ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
 					fi
 					;;
 				"b" ) #------------------------------------------------------------------------
-					if [[ $enableRebase == "true" ]]; then
+					if [[ $enableRebase -eq 1 ]]; then
 						echo "$ "$cmdRebase;
 						$cmdRebase;
 						
 						stateHasConflicts=`gitIsRebasing.sh`; 
 						looping=$stateHasConflicts; #if stateHasConflicts, still keep looping
-						[[ $stateHasConflicts == "false" ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
+						[[ $stateHasConflicts -eq 0 ]] && echo $yellowText"[$cmdRebase] succeeds!"$resetText;
 					fi
 					;;
 				"all" ) #------------------------------------------------------------------------
-					[[ $enableAutoRebase == "true" ]] && stateAutoRebaseOn="true";
+					[[ $enableAutoRebase -eq 1 ]] && stateAutoRebaseOn=1;
 					;;
 				"s" ) #------------------------------------------------------------------------
-					[[ $enableSkip == "true" ]] && looping="false";
+					[[ $enableSkip -eq 1 ]] && looping=0;
 					;;
 				* ) #------------------------------------------------------------------------
 					#disable some commands
