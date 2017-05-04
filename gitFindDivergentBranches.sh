@@ -57,8 +57,8 @@ else
 		looping=1;
 		while [ $looping -eq 1 ]; do
 			
-			gitOrigHead=`git name-rev --name-only ORIG_HEAD`;
-			gitHead=`git name-rev --name-only HEAD`;
+			gitOrigHead=`git rev-parse --abbrev-ref ORIG_HEAD`;
+			gitHead=`git rev-parse --abbrev-ref HEAD`;
 		
 			#simulated command line======================================
 			printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width

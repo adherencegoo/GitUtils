@@ -25,7 +25,7 @@ for arg in $@; do
 done
 
 #if branchName(space removed) is not specified, use HEAD
-[[ -z ${branchName// } ]] && branchName=`git name-rev --name-only HEAD`;
+[[ -z ${branchName// } ]] && branchName=`git rev-parse --abbrev-ref HEAD`;
 #TODO: if branchName is set but not valid, treat it as regex
 
 #debug:
