@@ -112,9 +112,14 @@ IFS=$origIfs;
 echo -e -n $resetText;
 
 #post-processing of parameters=====================================
-#add heading and trailing * to pattern if it doesn't exist
-[[ ${varPattern:0:1} != "*" ]] && varPattern="*"$varPattern;
-[[ ${varPattern: -1} != "*" ]] && varPattern=$varPattern"*";
+if [[ ${varPattern^^} == "HEAD" ]]; then
+	#toUpperCase, equals to HEAD
+	varPattern=`git rev-parse --abbrev-ref HEAD`;
+else
+	#add heading and trailing * to pattern if it doesn't exist
+	[[ ${varPattern:0:1} != "*" ]] && varPattern="*"$varPattern;
+	[[ ${varPattern: -1} != "*" ]] && varPattern=$varPattern"*";
+fi
 
 #========================================================
 [[ -z $intInfoCommitLines ]] && commitContents="contents:subject" || commitContents="contents:lines=$intInfoCommitLines";
