@@ -141,6 +141,10 @@ while read entry; do #it must be "entry"
 	set +f;#enable globbing
 
 	#======================================================================
+	#settings for this branch =============================================
+	branchResetText=$resetText;
+
+	#======================================================================
 	#check whether upstream exists ========================================
 	[[ -z $upstream ]] && upstreamExists=0 || upstreamExists=1;
 	[[ $boolBranchesWithUpstreamOnly -eq 1 ]] && [[ $upstreamExists -eq 0 ]] && continue;
@@ -161,14 +165,35 @@ while read entry; do #it must be "entry"
 		fi
 	fi
 	[[ $boolBranchesDivergentOnly -eq 1 ]] && [[ $divergenceType -ne $TYPE_DIVERGENT ]] && continue;
+
+	#check rank ============================================================
+	#rank ---------------------------------------------------
+	unset rank;
+	if [[ $boolInfoRank -eq 1 ]]; then
+		rank=$((`git config branch.$branchName.rank`));
+		if [[ $rank =~ ^[-]?[1-9][0-9]*$ ]]; then #positive/negative integer (integer excluding 0)
+
+			#start with '-' --> negative
+			if [[ $rank == '-'* ]]; then
+				outputSymbol='X';
+				rank=${rank:1}; #remove - sign
+				branchResetText=$branchResetText$dimEnable
+			else
+				# \xE2\x98\x85 is UTF-8 form of unicode ★
+				outputSymbol='\xE2\x98\x85';
+			fi
+		fi
+	fi
 		
+	#=======================================================================
+	#=======================================================================
 	#=======================================================================
 	#start to echo this branch==============================================
 	echo -n $resetText;
 	[[ $boolSeparator -eq 1 ]] && printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 	#one line vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	#header --------------------------------------------------------
-	headerColor=$resetText;
+	headerColor=$branchResetText;
 	if [[ $boolInfoHeader -eq 1 ]]; then 
 		headerAbbr=${branchName:0:1};#extrieve the first character
 		headerAbbr=${headerAbbr^^};#to upper case
@@ -186,7 +211,7 @@ while read entry; do #it must be "entry"
 		
 	#divergence type ------------------------------------------------
 	if [[ $upstreamExists -eq 1 ]]; then
-		echo -n -e $yellowText"\t";
+		echo -n -e $branchResetText$yellowText"\t";
 		case $divergenceType in
 			$TYPE_DIVERGENT ) #------------------------------------------------------------------------
 				echo -n -e $invertEnable"Divergent"$invertDisable;;
@@ -197,18 +222,14 @@ while read entry; do #it must be "entry"
 			* )
 				echo "*** Unknown DivergenceType ***";;
 		esac
-		echo -n -e $resetText;
+		echo -n -e $branchResetText;
 	fi
 	
 	#rank ---------------------------------------------------
-	if [[ $boolInfoRank -eq 1 ]]; then
-		rank=$((`git config branch.$branchName.rank`));
-		if [[ $rank =~ ^[0-9]+$ ]] && [[ $rank -gt 0 ]]; then
-			# former regex: positive integer or zero
-			printf "\t$redText%3d) " $rank;
-			# \xE2\x98\x85 is UTF-8 form of unicode ★
-			printf '\xE2\x98\x85 %.0s' `eval echo {1..$rank}`
-		fi
+	if [[ $boolInfoRank -eq 1 ]] && [[ ! -z $rank ]] && [[ $rank -ne 0 ]]; then
+		printf "\t$redText%3d) " $rank;
+		printf $outputSymbol' %.0s' `eval echo {1..$rank}`
+		unset outputSymbol;
 	fi
 	echo ;
 	#one line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
