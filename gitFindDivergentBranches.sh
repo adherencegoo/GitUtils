@@ -47,6 +47,9 @@ else
 	dimEnable="\e[2m";
 	dimDisable="\e[22m";
 	
+	headBeforeBash=`git rev-parse --abbrev-ref HEAD`;
+	[[ $headBeforeBash == "HEAD" ]] && unset headBeforeBash;
+
 	stateAutoRebaseOn=0;
 	skippedDivergentBranches=() #array
 	#take action on them one by one
@@ -59,6 +62,7 @@ else
 			
 			gitOrigHead=`git rev-parse --abbrev-ref ORIG_HEAD`;
 			gitHead=`git rev-parse --abbrev-ref HEAD`;
+			[[ $gitHead == "HEAD" ]] && gitHead='DetachedHead';
 		
 			#simulated command line======================================
 			printf "=%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
@@ -184,4 +188,5 @@ else
 			esac
 		done #action loop
 	done #for each divergent branch
+	[[ ! -z $headBeforeBash ]] && git checkout $headBeforeBash
 fi 
