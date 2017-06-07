@@ -17,7 +17,7 @@ declare -r ACTION_ADJUST=3;
 #handle inputs==============================================
 currentAction=$ACTION_SHOW;
 for arg in $@; do 
-	if [[ $arg -eq 0 ]]; then
+	if  [[ $arg != *'.'* ]] && [[ "$arg" -eq 0 ]]; then #string containing . is invalid for arithmetic operator
 		currentAction=$ACTION_UNSET;
 	elif [[ $arg =~ ^[+-]?[1-9][0-9]*$ ]]; then #1 or +1 or -1
 		currentAction=$ACTION_SET;

@@ -10,7 +10,7 @@ tmpBranch="orig-"$targetBranch;
 
 #TODO make sure both commits have no other branches pointing on them
 
-git loggc $targetBranch -2
+git logg $targetBranch -2
 printf "~%.0s" `eval echo {1..$(tput cols)}`;#depends on window width
 echo -n -e "\n\tSwap the 2 commits (y/N) ? ";
 read inputAction;
