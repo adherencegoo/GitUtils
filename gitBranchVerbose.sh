@@ -256,3 +256,5 @@ while read entry; do #it must be "entry"
 		fi
 	fi
 done
+
+echo -e -n $resetText$dimDisable$invertDisable;
