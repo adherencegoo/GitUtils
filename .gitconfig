@@ -1,0 +1,61 @@
+[core]
+	preloadindex = true
+	fscache = true
+    #editor = vim
+	editor = 'C:/Program Files/Notepad++/notepad++.exe' -multiInst -nosession
+[gc]
+	auto = 256
+[alias]
+#log
+#useful paramters: --follow, --decorate (show tags and branches), --all
+#format1: '%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'
+#format2: '%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+#format3: '%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+	logg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+	logga = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+	loggl = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all --not --remotes=*
+	logtq = log --format=format:'%s (%an)'
+	
+	showname = show --name-only
+
+	ls-untracked = ls-files --others --exclude-standard
+		#ls ignored files recursively according to the specified gitignore file
+	ls-ignored-r = ls-files --ignored --exclude-from=.gitignore
+	ls-ignored = "!f() { git check-ignore * -v $@; }; f" #ls ignored files briefly
+	
+	clean-check = clean -n
+	clean-sure = clean -f
+	unstage = reset HEAD -- 
+	heading-branch = !"git name-rev --name-only HEAD"
+	orig-heading-branch = !"git name-rev --name-only ORIG_HEAD"
+	get-content = cherry-pick --no-commit
+	
+	#branch utilities===========================================
+		#Usage: git branch-rename <existingBranch> <newName>
+	b-rename = branch -m
+		#b-set <existingBranch> <targetCommit>
+	b-set = branch -f 
+		#edit description
+	b-describe = branch --edit-description
+		#show description of all branches
+	bc = "!f() { echo '*** all branches ***'; git branch; echo '\n*** branches containing \"'$1'\" ***'; git branch --contain $1; }; f"
+	bv = "!f() { gitBranchVerbose.sh -u $@; }; f"
+	divergent = "!f() { gitFindDivergentBranches.sh $@; }; f"
+	divergent24 = "!f() { gitFindDivergentBranches.sh origin/AsusGallery_2.4; }; f"
+	b-rank = "!f() { gitBranchRank.sh $@; }; f"
+	
+	c-swap = "!f() { gitCommitSwap.sh $@; }; f"
+	
+	tag-rename = "!f() { git tag $2 $1 ; git tag -d $1; }; f" #Usage: git tag-rename oldName newName
+	tag-msg = "!f() { git tag $1 $1 -f -m $2; }; f" #Usage: git tag-msg <tagName> <newMessage>
+
+
+
+[user]
+	name = Owen_Chen
+	email = owen_chen@asus.com
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
